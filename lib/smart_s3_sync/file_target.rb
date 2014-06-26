@@ -92,12 +92,12 @@ module SmartS3Sync
         end
 
         file.write chunk
-        (((1 - (remaining_bytes.to_f / total_bytes)) * 50).to_i - done).times do
+        (((1 - (left.to_f / total)) * 50).to_i - done).times do
           done += 1
           print "#"
         end
         if done == 50
-          done = total_bytes / 1048576.to_f
+          done = total / 1048576.to_f
         end
       end
 

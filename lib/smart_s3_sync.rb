@@ -1,7 +1,6 @@
 require 'smart_s3_sync/version'
 require 'smart_s3_sync/file_table'
 require 'fog'
-require 'pp'
 
 module SmartS3Sync
 
