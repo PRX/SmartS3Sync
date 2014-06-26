@@ -1,4 +1,4 @@
-# S5
+# SmartS3Sync
 
 TODO: Write a gem description
 
@@ -6,7 +6,7 @@ TODO: Write a gem description
 
 Add this line to your application's Gemfile:
 
-    gem 's5'
+    gem 'smart_s3_sync'
 
 And then execute:
 
@@ -14,7 +14,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install s5
+    $ gem install smart_s3_sync
 
 ## Usage
 
