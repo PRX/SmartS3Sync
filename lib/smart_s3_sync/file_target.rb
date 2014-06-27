@@ -1,4 +1,5 @@
 require 'tempfile'
+require 'smart_s3_sync/digest_cache'
 
 module SmartS3Sync
   class FileTarget
@@ -71,11 +72,12 @@ module SmartS3Sync
       destinations.each do |dest|
         FileUtils.mkdir_p(File.dirname(dest))
         FileUtils.ln(source, dest, :force => true)
+        DigestCache.save_record(dest, File.mtime(dest).to_i, digest.to_s)
       end
     end
 
     def file_hash(path)
-      Digest::MD5.file(path).hexdigest
+      DigestCache.digest(path)
     end
 
     def download(fog_dir)

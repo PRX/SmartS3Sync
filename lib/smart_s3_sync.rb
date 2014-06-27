@@ -10,7 +10,6 @@ module SmartS3Sync
     bucket = Fog::Storage.new(connection_options).directories.
       get(remote_dir, {:prefix => remote_prefix})
 
-
     # Add all files in the cloud to our map.
     bucket.files.each { |file| table.push(file) }
 
