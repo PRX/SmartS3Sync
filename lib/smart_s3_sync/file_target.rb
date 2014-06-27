@@ -18,7 +18,6 @@ module SmartS3Sync
         # we don't add it to the list of destinations and instead
         # mark it as a local source.
         if File.exists?(file) && file_hash(file) == digest.to_s
-          puts "#{file} is up to date"
           @local_source = file
         else
           destinations.push(file)
@@ -34,7 +33,7 @@ module SmartS3Sync
         if local_source.nil?     # we prefer to not have to download
           copy_from_fog(fog_dir)
         else
-          copy_from_local(source)
+          copy_from_local(local_source)
         end
       end
     end
@@ -81,32 +80,22 @@ module SmartS3Sync
     end
 
     def download(fog_dir)
-      file = Tempfile.new(digest.to_s)
-      done = 0
-      now = Time.now.to_i
-
-      fog_dir.files.get(remote_filename) do |chunk, left, total|
-        if (chunk.bytes.size + left == total) # fog might restart in the middle
-          file.rewind
-          if done !=0
-            puts " ERROR ... retrying"
-            done = 0
+      dir = File.dirname(destinations[0])
+      FileUtils.mkdir_p(dir)
+      Tempfile.new(".#{digest}", dir).tap do |file|
+        fog_dir.files.get(remote_filename) do |chunk, left, total|
+          if (chunk.size + left == total) # fog might restart in the middle
+            file.rewind
+            if done !=0
+              puts " ERROR ... retrying"
+              done = 0
+            end
           end
-        end
 
-        file.write chunk
-        (((1 - (left.to_f / total)) * 50).to_i - done).times do
-          done += 1
-          print "#"
+          file.write chunk
         end
-        if done == 50
-          done = total / 1048576.to_f
-        end
+        file.close
       end
-
-      puts " #{((done / [Time.now.to_i - now, 0.5].max) * 100).to_i / 100.0} MB/s"
-      file.close
-      file
     end
   end
 end
