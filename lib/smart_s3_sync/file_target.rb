@@ -86,10 +86,6 @@ module SmartS3Sync
         fog_dir.files.get(remote_filename) do |chunk, left, total|
           if (chunk.size + left == total) # fog might restart in the middle
             file.rewind
-            if done !=0
-              puts " ERROR ... retrying"
-              done = 0
-            end
           end
 
           file.write chunk
