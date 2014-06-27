@@ -1,3 +1,41 @@
 #!/usr/bin/env ruby
 
 require 'smart_s3_sync'
+require 'uri'
+
+def quit(message)
+  STDERR.puts message
+  exit 1
+end
+
+if ARGV.length != 2
+  quit "Usage: #{File.basename($0)} REMOTE_URI LOCAL_DIR"
+end
+
+remote_uri, local_dir = ARGV
+
+remote_uri = URI.parse(remote_uri)
+
+quit "Only s3 is currently supported" if remote_uri.scheme.downcase != 's3'
+
+bucket = remote_uri.host
+prefix = remote_uri.path.sub('/','')
+
+if remote_uri.userinfo
+  access_key_id = URI.decode(remote_uri.user).to_s
+  access_key_secret = URI.decode(remote_uri.password).to_s
+else
+  access_key_id = ENV['S3_ACCESS_KEY_ID']
+  access_key_secret = ENV['S3_SECRET_ACCESS_KEY']
+end
+
+if !(access_key_id && access_key_secret)
+  quit "S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY environment variables are required"
+end
+
+SmartS3Sync.sync(local_dir, bucket, {
+  provider: 'AWS',
+  aws_access_key_id: access_key_id,
+  aws_secret_access_key: access_key_secret,
+  endpoint: 'http://s3.amazonaws.com'
+  }, prefix)

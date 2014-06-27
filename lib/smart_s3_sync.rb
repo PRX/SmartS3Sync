@@ -4,15 +4,11 @@ require 'fog'
 
 module SmartS3Sync
 
-  def self.sync(bucket_name, dir, prefix=nil)
-    table = FileTable.new(dir, prefix)
+  def self.sync(dir, remote_dir, connection_options, remote_prefix=nil)
+    table = FileTable.new(dir, remote_prefix)
 
-    bucket = Fog::Storage.new({
-      :provider => 'AWS',
-      :aws_access_key_id => id,
-      :aws_secret_access_key => secret,
-      :endpoint => 'http://s3.amazonaws.com'
-    }).directories.get(bucket_name, {:prefix => prefix})
+    bucket = Fog::Storage.new(connection_options).directories.
+      get(remote_dir, {:prefix => remote_prefix})
 
 
     # Add all files in the cloud to our map.

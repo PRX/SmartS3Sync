@@ -34,7 +34,7 @@ module SmartS3Sync
     end
 
     def strip_prefix(key)
-      key.sub(/^#{@prefix}\/?/, '') 
+      key.sub(/^#{@prefix}\/?/, '')
     end
   end
 end

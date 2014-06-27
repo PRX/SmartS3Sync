@@ -17,6 +17,7 @@ module SmartS3Sync
         # we don't add it to the list of destinations and instead
         # mark it as a local source.
         if File.exists?(file) && file_hash(file) == digest.to_s
+          puts "#{file} is up to date"
           @local_source = file
         else
           destinations.push(file)
@@ -42,8 +43,9 @@ module SmartS3Sync
     def copy_from_fog(fog_dir)
       puts "Downloading #{remote_filename}."
       tries = 0
+      file = nil
       begin
-        download(fog_dir) # basically, just try.
+        file = download(fog_dir) # basically, just try.
 
         if file_hash(file.path) != digest.to_s
           raise "Hash mismatch downloading #{remote_filename}"
@@ -61,8 +63,7 @@ module SmartS3Sync
           raise e
         end
       ensure
-        file.close
-        file.unlink
+        file.close(true) unless file.nil?
       end
     end
 
@@ -82,7 +83,7 @@ module SmartS3Sync
       done = 0
       now = Time.now.to_i
 
-      fog_dir.files.get(key) do |chunk, left, total|
+      fog_dir.files.get(remote_filename) do |chunk, left, total|
         if (chunk.bytes.size + left == total) # fog might restart in the middle
           file.rewind
           if done !=0
