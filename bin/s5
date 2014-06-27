@@ -37,5 +37,5 @@ SmartS3Sync.sync(local_dir, bucket, {
   provider: 'AWS',
   aws_access_key_id: access_key_id,
   aws_secret_access_key: access_key_secret,
-  endpoint: 'http://s3.amazonaws.com'
+  endpoint: "http://#{bucket}.s3.amazonaws.com"
   }, prefix)
