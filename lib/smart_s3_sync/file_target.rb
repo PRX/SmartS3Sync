@@ -68,6 +68,7 @@ module SmartS3Sync
     end
 
     def copy_from_local(source)
+      puts "retrieved #{destinations.join(', ')}"
       destinations.each do |dest|
         FileUtils.mkdir_p(File.dirname(dest))
         FileUtils.ln(source, dest, :force => true)

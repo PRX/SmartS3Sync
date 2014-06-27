@@ -15,6 +15,8 @@ module SmartS3Sync
     # Add all files in the cloud to our map.
     bucket.files.each { |file| table.push(file) }
 
+    puts "To Copy: #{table.to_copy.join(', ')}"
+
     # And copy them to the right places
     table.copy!(bucket)
 

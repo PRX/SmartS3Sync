@@ -27,6 +27,10 @@ module SmartS3Sync
       @files.include?(filename)
     end
 
+    def to_copy
+      @map.map{|(k, target)| target.destinations }.flatten
+    end
+
     private
 
     def hash_key(fog_file)
