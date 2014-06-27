@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    smart_s3_sync (0.0.2)
+    smart_s3_sync (0.0.5)
       fog
       sqlite3
 

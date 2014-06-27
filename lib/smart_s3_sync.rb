@@ -2,6 +2,8 @@ require 'smart_s3_sync/version'
 require 'smart_s3_sync/file_table'
 require 'fog'
 
+Fog.credentials = { :path_style => true }
+
 module SmartS3Sync
 
   def self.sync(dir, remote_dir, connection_options, remote_prefix=nil)
