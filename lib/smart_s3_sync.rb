@@ -23,7 +23,7 @@ module SmartS3Sync
 
     puts "\n"
     puts "Status: Need to download #{table.to_download.length} files (#{table.to_download.map(&:size).inject(&:+)} bytes)"
-    puts "Status: with an effective total of #{table.to_copy.length} files (#{table.to_copy.map{|x| x.size * x.destinations.length }.inject(&:+)} bytes)"
+    puts "Status: with an effective total of #{table.to_copy.inject(0){|coll, obj| coll + obj.destinations.length }} files (#{table.to_copy.map{|x| x.size * x.destinations.length }.inject(&:+)} bytes)"
 
     # And copy them to the right places
     table.copy!(bucket)
