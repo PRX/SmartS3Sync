@@ -3,10 +3,11 @@ require 'smart_s3_sync/digest_cache'
 
 module SmartS3Sync
   class FileTarget
-    attr_reader :digest, :remote_filename, :local_source, :destinations
+    attr_reader :digest, :remote_filename, :local_source, :destinations, :size
 
-    def initialize(digest, remote_filename)
+    def initialize(digest, remote_filename, size)
       @digest          = digest
+      @size            = size
       @remote_filename = remote_filename
       @local_source    = nil
       @destinations    = []
@@ -41,7 +42,7 @@ module SmartS3Sync
     private
 
     def copy_from_fog(fog_dir)
-      puts "Downloading #{remote_filename}."
+      puts "Downloading #{remote_filename}"
       tries = 0
       file = nil
       begin
@@ -68,7 +69,7 @@ module SmartS3Sync
     end
 
     def copy_from_local(source)
-      puts "retrieved #{destinations.join(', ')}"
+      puts "Linking #{destinations.join(', ')}"
       destinations.each do |dest|
         FileUtils.mkdir_p(File.dirname(dest))
         FileUtils.ln(source, dest, :force => true)

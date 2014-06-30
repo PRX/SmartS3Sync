@@ -11,7 +11,7 @@ module SmartS3Sync
 
     def push(fog_file)
       digest = hash_key(fog_file) # pull cloud calculated hex digest from file
-      @map[digest] ||= FileTarget.new(digest, fog_file.key) # grab or create target
+      @map[digest] ||= FileTarget.new(digest, fog_file.key, fog_file.content_length) # grab or create target
       destination_filename = File.expand_path(strip_prefix(fog_file.key), @root) # calculate local path
       @files.push destination_filename # add local path to global list of files to keep
       @map[digest].add_destination(destination_filename) # and add local path to the target
@@ -28,7 +28,11 @@ module SmartS3Sync
     end
 
     def to_copy
-      @map.map{|(k, target)| target.destinations }.flatten
+      @_tc ||= @map.select {|key, target| target.destinations.length > 0 }.map{|x, y| y }
+    end
+
+    def to_download
+      @_td ||= to_copy.select {|target| target.local_source.nil? }
     end
 
     private
