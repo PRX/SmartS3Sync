@@ -18,7 +18,7 @@ module SmartS3Sync
         # we don't add it to the list of destinations and instead
         # mark it as a local source.
         if File.exists?(file) && file_hash(file) == digest.to_s
-          @local_source = file
+          add_local_source(file)
         else
           destinations.push(file)
         end
@@ -73,6 +73,14 @@ module SmartS3Sync
         FileUtils.mkdir_p(File.dirname(dest))
         FileUtils.ln(source, dest, :force => true)
         DigestCache.save_record(dest, File.mtime(dest).to_i, digest.to_s)
+      end
+    end
+
+    def add_local_source(file)
+      if local_source.nil?
+        @local_source = file
+      else
+        FileUtils.ln(local_source, file, :force => true)
       end
     end
 
