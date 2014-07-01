@@ -22,7 +22,7 @@ module SmartS3Sync
         $stderr.print (checked += 1).to_s
       elsif (checked += 1) == 1
         $stderr.print '...'
-      elsif (checked += 1) % 1000 == 0
+      elsif checked % 1000 == 0
         $stderr.print '.'
       end
     end
