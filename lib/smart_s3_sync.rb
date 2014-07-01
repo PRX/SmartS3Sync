@@ -13,17 +13,23 @@ module SmartS3Sync
       get(remote_dir, {:prefix => remote_prefix})
 
     # Add all files in the cloud to our map.
-    print "Checking Files: 0"
+    $stderr.print "Checking Files: "
     checked = 0
     bucket.files.each do |file|
       table.push(file)
-      print "\b" * checked.to_s.length
-      print (checked += 1).to_s
+      if $stderr.tty?
+        $stderr.print "\b" * checked.to_s.length unless checked == 0
+        $stderr.print (checked += 1).to_s
+      elsif (checked += 1) == 1
+        $stderr.print '...'
+      elsif (checked += 1) % 1000 == 0
+        $stderr.print '.'
+      end
     end
 
-    puts "\n"
-    puts "Status: Need to download #{table.to_download.length} files (#{table.to_download.map(&:size).inject(&:+)} bytes)"
-    puts "Status: with an effective total of #{table.to_copy.inject(0){|coll, obj| coll + obj.destinations.length }} files (#{table.to_copy.map{|x| x.size * x.destinations.length }.inject(&:+)} bytes)"
+    $stderr.puts " done! (#{checked} files)\n"
+    $stderr.puts "Status: Need to download #{table.to_download.length} files (#{table.to_download.map(&:size).inject(&:+)} bytes)"
+    $stderr.puts "Status: with an effective total of #{table.to_copy.inject(0){|coll, obj| coll + obj.destinations.length }} files (#{table.to_copy.map{|x| x.size * x.destinations.length }.inject(&:+)} bytes)"
 
     # And copy them to the right places
     table.copy!(bucket)
@@ -31,14 +37,14 @@ module SmartS3Sync
     # sweep through and remove all files not in the cloud
     Dir[File.join(dir, '**/*')].each do |file|
       if !File.directory?(file)
-        File.unlink(file) and puts "DELETING: #{file}" unless table.keep?(file)
+        File.unlink(file) and $stderr.puts "DELETING: #{file}" unless table.keep?(file)
       end
     end
 
     # and then all empty directories
     Dir[File.join(dir, '**/*')].each do |file|
       if File.directory?(file) && Dir.entries(file).length == 0
-        puts "DELETING: #{file}"
+        $stderr.puts "DELETING: #{file}"
         Dir.rmdir(file)
       end
     end

@@ -42,7 +42,7 @@ module SmartS3Sync
     private
 
     def copy_from_fog(fog_dir)
-      puts "Downloading #{remote_filename}"
+      $stderr.puts "Downloading #{remote_filename}"
       tries = 0
       file = nil
       begin
@@ -57,8 +57,8 @@ module SmartS3Sync
       rescue StandardError => e
         if tries < 5
           tries += 1
-          puts e
-          puts "retrying"
+          $stderr.puts e
+          $stderr.puts "retrying"
           retry
         else
           raise e
@@ -69,9 +69,9 @@ module SmartS3Sync
     end
 
     def copy_from_local(source)
-      puts "Linking #{destinations.join(', ')}"
+      $stderr.puts "Linking #{destinations.join(', ')}"
       destinations.each do |dest|
-        FileUtils.mkdir_p(File.dirname(dest))
+        FileUtils.mkdir_p(File.dirname(dest), :mode => 0755)
         FileUtils.ln(source, dest, :force => true)
         DigestCache.save_record(dest, File.mtime(dest).to_i, digest.to_s)
       end
@@ -101,6 +101,7 @@ module SmartS3Sync
           file.write chunk
         end
         file.close
+        File.chmod(0644, file.path)
       end
     end
   end
