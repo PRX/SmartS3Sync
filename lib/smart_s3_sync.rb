@@ -35,14 +35,14 @@ module SmartS3Sync
     table.copy!(bucket)
 
     # sweep through and remove all files not in the cloud
-    Dir[File.join(dir, '**/*')].each do |file|
+    Dir.glob(File.join(dir, '**/*')) do |file|
       if !File.directory?(file)
         File.unlink(file) and $stderr.puts "DELETING: #{file}" unless table.keep?(file)
       end
     end
 
     # and then all empty directories
-    Dir[File.join(dir, '**/*')].each do |file|
+    Dir.glob(File.join(dir, '**/*')) do |file|
       if File.directory?(file) && Dir.entries(file).length == 0
         $stderr.puts "DELETING: #{file}"
         Dir.rmdir(file)

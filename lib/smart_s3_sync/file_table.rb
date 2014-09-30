@@ -18,7 +18,11 @@ module SmartS3Sync
     end
 
     def copy!(fog_dir)
-      @map.sort_by{|(k, target)| -target.destinations.length + (target.local_source.nil? ? 0 : -100) }.each do |(k, target)|
+      @map.sort_by do |(k, target)|
+        1_000_000_000 * (target.local_source.nil? ? 0 : -1) -
+            1_000_000 * target.destinations.length +
+          1/1_048_576 * target.size
+      end.each do |(k, target)|
         target.copy!(fog_dir)
       end
     end
