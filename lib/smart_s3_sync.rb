@@ -6,7 +6,7 @@ Fog.credentials = { :path_style => true }
 
 module SmartS3Sync
 
-  def self.sync(dir, remote_dir, connection_options, remote_prefix=nil)
+  def self.sync(dir, remote_dir, connection_options, remote_prefix=nil, sync_options={})
     table = FileTable.new(dir, remote_prefix)
 
     bucket = Fog::Storage.new(connection_options).directories.
@@ -32,7 +32,7 @@ module SmartS3Sync
     $stderr.puts "Status: with an effective total of #{table.to_copy.inject(0){|coll, obj| coll + obj.destinations.length }} files (#{table.to_copy.map{|x| x.size * x.destinations.length }.inject(&:+)} bytes)"
 
     # And copy them to the right places
-    table.copy!(bucket)
+    table.copy!(bucket, sync_options)
 
     # sweep through and remove all files not in the cloud
     Dir.glob(File.join(dir, '**/*')) do |file|

@@ -17,13 +17,13 @@ module SmartS3Sync
       @map[digest].add_destination(destination_filename) # and add local path to the target
     end
 
-    def copy!(fog_dir)
+    def copy!(fog_dir, sync_options={})
       @map.sort_by do |(k, target)|
         1_000_000_000 * (target.local_source.nil? ? 0 : -1) -
             1_000_000 * target.destinations.length +
           1/1_048_576 * target.size
       end.each do |(k, target)|
-        target.copy!(fog_dir)
+        target.copy!(fog_dir, sync_options)
       end
     end
 

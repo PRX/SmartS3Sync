@@ -26,33 +26,33 @@ module SmartS3Sync
       end
     end
 
-    def copy!(fog_dir)
+    def copy!(fog_dir, sync_options={})
       # If every copy in the cloud is already present, the
       # number of destinations will be 0 - there is no work
       # left to do.
       if destinations.length > 0
         if local_source.nil?     # we prefer to not have to download
-          copy_from_fog(fog_dir)
+          copy_from_fog(fog_dir, sync_options)
         else
-          copy_from_local(local_source)
+          copy_from_local(local_source, sync_options)
         end
       end
     end
 
     private
 
-    def copy_from_fog(fog_dir)
+    def copy_from_fog(fog_dir, sync_options={})
       $stderr.puts "Downloading #{remote_filename}"
       tries = 0
       file = nil
       begin
-        file = download(fog_dir) # basically, just try.
+        file = download(fog_dir, sync_options) # basically, just try.
 
         if file_hash(file.path) != digest.to_s
           raise "Hash mismatch downloading #{remote_filename}"
         end
 
-        copy_from_local(file.path) # with a copy locally, the job is the same
+        copy_from_local(file.path, sync_options) # with a copy locally, the job is the same
         @local_source = destinations.shift # we now have a local copy!
       rescue StandardError => e
         if tries < 5
@@ -68,7 +68,7 @@ module SmartS3Sync
       end
     end
 
-    def copy_from_local(source)
+    def copy_from_local(source, sync_options={})
       $stderr.puts "Linking #{destinations.join(', ')}"
       destinations.each do |dest|
         FileUtils.mkdir_p(File.dirname(dest), :mode => 0755)
@@ -89,11 +89,11 @@ module SmartS3Sync
       DigestCache.digest(path)
     end
 
-    def download(fog_dir)
+    def download(fog_dir, sync_options={})
       dir = File.dirname(destinations[0])
       FileUtils.mkdir_p(dir)
       Tempfile.new(".#{digest}", dir).tap do |file|
-        fog_dir.files.get(remote_filename) do |chunk, left, total|
+        rfile = fog_dir.files.get(remote_filename) do |chunk, left, total|
           if (chunk.size + left == total) # fog might restart in the middle
             file.rewind
           end
@@ -102,6 +102,11 @@ module SmartS3Sync
         end
         file.close
         File.chmod(0644, file.path)
+        if sync_options.has_key?('set-timestamp-from-metadata')
+          time = rfile.metadata[sync_options['set-timestamp-from-metadata']]
+          time &&= Time.at(time.to_i)
+          time && File.utime(time, time, file)
+        end
       end
     end
   end
